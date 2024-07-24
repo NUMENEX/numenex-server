@@ -12,11 +12,11 @@
 4. update the `.env` file
 
 5. Install dependencies
-    - ```bash 
+    ```shell 
     poetry install
     ```
 
 6. Spin up the server
-    - ```bash
+    ```shell
     poetry run start
     ```
