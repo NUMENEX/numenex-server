@@ -39,3 +39,6 @@ class Trade(Base):
     status = Column(
         ENUM("feeded", "predicted", "validated", name="trade_status"), nullable=False
     )
+    roi = Column(Float)
+    actual_price = Column(Float)
+    price_prediction_date = Column(DateTime, nullable=False)

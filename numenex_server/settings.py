@@ -3,10 +3,12 @@ from functools import lru_cache
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from .database import DatabaseConfig
+from .commune import CommuneConfig
 
 
 class Config(BaseModel):
     database_config: DatabaseConfig
+    commune_config: CommuneConfig
 
 
 class Settings(Config, BaseSettings):

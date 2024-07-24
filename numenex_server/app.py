@@ -1,8 +1,10 @@
 from fastapi import Depends, FastAPI
 from .settings import Config, get_settings
-from .dependencies import Database, DatabaseDependency
+from .dependencies import Database, DatabaseDependency, CommuneDependency
 from .routers import trade_router
+from .commune import VerifyCommuneMinersAndValis
 import uvicorn
+from .middlewares.exception import ExceptionHandlerMiddleware
 
 
 class App:
@@ -18,7 +20,9 @@ class App:
     def get_dependencies(self):
         db = Database(self.config.database_config)
         database_dependency = DatabaseDependency(db)
-        return [Depends(database_dependency)]
+        commune_verifier = VerifyCommuneMinersAndValis(self.config.commune_config)
+        commune_dependency = CommuneDependency(commune_verifier)
+        return [Depends(database_dependency), Depends(commune_dependency)]
 
     def include_routes(self):
         self.app.include_router(trade_router.router)
@@ -26,6 +30,7 @@ class App:
 
 settings = get_settings()
 app = App(settings)
+app.app.add_middleware(ExceptionHandlerMiddleware)
 
 
 def serve():
