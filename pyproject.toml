@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "numenex_server"
+version = "0.1.0"
+description = "This is a fastapi server for storing trade information of feeders, miners and validators"
+authors = ["Sandip Thapa <noreply.w411-e@github.io>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.1"
+pydantic = "^2.8.2"
+pydantic-settings = "^2.3.4"
+sqlalchemy = "^2.0.31"
+alembic = "^1.13.2"
+psycopg2-binary = "^2.9.9"
+uvicorn = "^0.30.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start="numenex_server.app:serve"
