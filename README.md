@@ -3,7 +3,6 @@
 ## Prerequisites
 1. Make sure following are installed properly
     - Install Python and then install poetry
-    - Clone this repo
 
 2. Clone the repo
 
@@ -13,9 +12,7 @@
 4. update the `.env` file
 
 5. Install dependencies
-    - ```bash
-        poetry install
-    ```
+    - ```bash poetry install```
 6. Spin up the server
     - ```bash
         poetry run start
