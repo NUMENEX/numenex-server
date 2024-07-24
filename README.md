@@ -8,15 +8,20 @@
 
 3. Copy `.env.example` to `.env`
     - Run local psql server or get psql server from online sources like supabase (It give you a free postgres db for personal use)
+4. Update `sqlalchemy.url` in alembic.ini with the postgres url
 
-4. update the `.env` file
+5. update the `.env` file
 
-5. Install dependencies
+6. Install dependencies
     ```shell 
     poetry install
     ```
+7. Run the migration
+```bash
+alembic upgrade head
+```
 
-6. Spin up the server
+8. Spin up the server
     ```shell
     poetry run start
     ```
