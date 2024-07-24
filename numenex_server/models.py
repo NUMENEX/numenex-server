@@ -30,15 +30,21 @@ class Trade(Base):
     token_symbol = Column(String, nullable=False)
     hash = Column(String, nullable=False, unique=True)
     current_price = Column(Float)
-    predicted_price = Column(Float)
+    predicted_price = Column(Float, comment="Price predicted by the miner")
     predictor_address = Column(String)
     validator_address = Column(String)
     chain = Column(String, nullable=False)
-    prediction_end_date = Column(String, nullable=False)
+    prediction_end_date = Column(
+        String,
+        nullable=False,
+        comment="Date of prediction to be ended, Miner can no longer predict after this date for this txn",
+    )
     trading_pair = Column(String, nullable=False)
     status = Column(
         ENUM("feeded", "predicted", "validated", name="trade_status"), nullable=False
     )
-    roi = Column(Float)
-    actual_price = Column(Float)
-    price_prediction_date = Column(DateTime, nullable=False)
+    roi = Column(Float, comment="Return on investment")
+    actual_price = Column(Float, comment="Actual price of the token on prediction date")
+    price_prediction_date = Column(
+        DateTime, nullable=False, comment="Date of prediction to be happened"
+    )
