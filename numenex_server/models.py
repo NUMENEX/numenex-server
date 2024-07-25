@@ -48,3 +48,7 @@ class Trade(Base):
     price_prediction_date = Column(
         DateTime, nullable=False, comment="Date of prediction to be happened"
     )
+    signal = Column(
+        ENUM("bullish", "bearish", name="trade_signal", create_type=True),
+        comment="Signal for the trade",
+    )
