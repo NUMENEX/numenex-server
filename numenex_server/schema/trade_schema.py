@@ -8,9 +8,8 @@ __all__ = ["Trade", "TradeCreate", "TradeUpdateMiner", "TradeUpdateValidator"]
 class TradeBase(BaseModel):
     token_name: str
     token_symbol: str
-    hash: str
-    chain: str
     trading_pair: str
+    hash: str
 
 
 class Trade(TradeBase):

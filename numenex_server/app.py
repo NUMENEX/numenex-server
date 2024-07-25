@@ -1,9 +1,10 @@
 from fastapi import Depends, FastAPI
 from .settings import Config, get_settings
 from .dependencies import Database, DatabaseDependency, CommuneDependency
-from .routers import trade_router
+from .routers import trade_router, nonce_router
 from .commune import VerifyCommuneMinersAndValis
 import uvicorn
+from starlette.middleware.sessions import SessionMiddleware
 from .middlewares.exception import ExceptionHandlerMiddleware
 
 
@@ -26,11 +27,15 @@ class App:
 
     def include_routes(self):
         self.app.include_router(trade_router.router)
+        self.app.include_router(nonce_router.router)
 
 
 settings = get_settings()
 app = App(settings)
 app.app.add_middleware(ExceptionHandlerMiddleware)
+app.app.add_middleware(
+    SessionMiddleware, secret_key="some-random-string", max_age=180000
+)
 
 
 def serve():

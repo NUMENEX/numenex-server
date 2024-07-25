@@ -1,10 +1,11 @@
 import typing as ty
 
 from fastapi import APIRouter, Depends
-from ..dependencies import get_session, get_miner, get_validator
+from ..dependencies import get_session, get_miner, get_validator, get_siwe_msg
 from .. import schema
 from ..services import TradeService
 from sqlalchemy.orm import Session
+from siwe import SiweMessage
 
 
 router = APIRouter(prefix="/trades", tags=["trades"])
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/trades", tags=["trades"])
 async def get_trades(
     service: ty.Annotated[TradeService, Depends(TradeService)],
     session: Session = Depends(get_session),
-    # _: ty.Any = Depends(get_miner),
+    msg: SiweMessage = Depends(get_siwe_msg),
 ):
     data = service.find_all(session)
     return data
@@ -25,9 +26,12 @@ async def create_trade(
     trade: schema.TradeCreate,
     service: ty.Annotated[TradeService, Depends(TradeService)],
     session: Session = Depends(get_session),
-    # _: ty.Any = Depends(get_miner),
+    messages: ty.Any = Depends(get_siwe_msg),
 ):
-    return service.create_trade(trade, session)
+    siwe_message, message = messages
+    return service.create_trade(
+        session, trade=trade, siwe_message=siwe_message, message=message
+    )
 
 
 @router.put("/miner/{trade_id}", response_model=schema.Trade)

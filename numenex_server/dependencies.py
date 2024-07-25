@@ -1,9 +1,10 @@
 import logging
 from fastapi.security import SecurityScopes
 from .database import Database
-from fastapi import Request
+from fastapi import Request, HTTPException
 from .commune import VerifyCommuneMinersAndValis
 from .exceptions import UnauthenticatedException
+from siwe import SiweMessage, siwe
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +62,31 @@ def get_validator(
         address, "validator", signature, message
     )
     return address
+
+
+def get_siwe_msg(
+    request: Request,
+    _: SecurityScopes,
+):
+    signature, message = get_headers_data(request)
+    if (signature or message) is None:
+        raise UnauthenticatedException
+    try:
+        siwe_msg = SiweMessage.from_message(message=message)
+        siwe_msg.verify(signature=signature)
+        if siwe_msg.chain_id != "56":
+            raise HTTPException(status_code=400, detail="Invalid chain")
+        if siwe_msg.nonce != request.session.get("nonce"):
+            raise HTTPException(status_code=400, detail="Nonce mismatch")
+        request.session.clear()
+        return siwe_msg, message
+    except siwe.ExpiredMessage:
+        raise HTTPException(status_code=400, detail="Expired message")
+    except siwe.InvalidSignature:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    except siwe.MalformedSession:
+        raise HTTPException(status_code=400, detail="Session malformed")
+    except siwe.DomainMismatch:
+        raise HTTPException(status_code=400, detail="Domain mismatch")
+    except siwe.VerificationError:
+        raise HTTPException(status_code=400, detail="Verification error")
