@@ -1,8 +1,15 @@
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .settings import Config, get_settings
-from .dependencies import Database, DatabaseDependency, CommuneDependency
+from .dependencies import (
+    Database,
+    DatabaseDependency,
+    CommuneDependency,
+    UniswapV3Dependency,
+)
 from .routers import trade_router, nonce_router
 from .commune import VerifyCommuneMinersAndValis
+from .graphql import UniswapV3Graphql
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 from .middlewares.exception import ExceptionHandlerMiddleware
@@ -23,7 +30,13 @@ class App:
         database_dependency = DatabaseDependency(db)
         commune_verifier = VerifyCommuneMinersAndValis(self.config.commune_config)
         commune_dependency = CommuneDependency(commune_verifier)
-        return [Depends(database_dependency), Depends(commune_dependency)]
+        uniswap_v3_graphql = UniswapV3Graphql(self.config.uniswap_graphql_config)
+        uniswap_v3_dependency = UniswapV3Dependency(uniswap_v3_graphql)
+        return [
+            Depends(database_dependency),
+            Depends(commune_dependency),
+            Depends(uniswap_v3_dependency),
+        ]
 
     def include_routes(self):
         self.app.include_router(trade_router.router)
@@ -32,10 +45,16 @@ class App:
 
 settings = get_settings()
 app = App(settings)
-app.app.add_middleware(ExceptionHandlerMiddleware)
 app.app.add_middleware(
     SessionMiddleware, secret_key="some-random-string", max_age=180000
 )
+app.app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.app.add_middleware(ExceptionHandlerMiddleware)
 
 
 def serve():

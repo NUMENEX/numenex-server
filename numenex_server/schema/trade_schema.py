@@ -2,19 +2,17 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-__all__ = ["Trade", "TradeCreate", "TradeUpdateMiner", "TradeUpdateValidator"]
+__all__ = [
+    "Trade",
+    "TradeUpdateMiner",
+    "TradeUpdateValidator",
+    "SwapResponse",
+]
 
 
-class TradeBase(BaseModel):
-    token_name: str
-    token_symbol: str
-    trading_pair: str
-    hash: str
-
-
-class Trade(TradeBase):
+class Trade(BaseModel):
     feeder_address: str
-    current_price: float
+    traded_price: float
     predicted_price: Optional[float]
     predictor_address: Optional[str]
     validator_address: Optional[str]
@@ -23,12 +21,14 @@ class Trade(TradeBase):
     status: str
     roi: Optional[float]
     actual_price: Optional[float]
+    hash: str
+    token_name: str
+    token_symbol: str
+    trading_pair: str
+    signal: Optional[str]
 
     class Config:
         from_attributes = True
-
-
-class TradeCreate(TradeBase): ...
 
 
 class TradeUpdateMiner(BaseModel):
@@ -39,3 +39,24 @@ class TradeUpdateValidator(BaseModel):
     predicted_price: float
     actual_price: float
     roi: float
+
+
+class TokenData(BaseModel):
+    name: str
+    symbol: str
+
+
+class SwapResponse(BaseModel):
+    amount0: str
+    amount1: str
+    amountUSD: str
+    id: str
+    logIndex: str
+    origin: str
+    recipient: str
+    sender: str
+    sqrtPriceX96: str
+    tick: str
+    timestamp: str
+    token0: TokenData
+    token1: TokenData

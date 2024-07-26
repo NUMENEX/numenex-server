@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, DateTime, Float, ForeignKey, UUID, String
+from sqlalchemy import Column, DateTime, Float, Integer, UUID, String
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ENUM
 import uuid
@@ -29,13 +29,13 @@ class Trade(Base):
     token_name = Column(String, nullable=False)
     token_symbol = Column(String, nullable=False)
     hash = Column(String, nullable=False, unique=True)
-    current_price = Column(Float)
+    traded_price = Column(Float)
     predicted_price = Column(Float, comment="Price predicted by the miner")
     predictor_address = Column(String)
     validator_address = Column(String)
-    chain = Column(String, nullable=False)
+    chain_id = Column(Integer, nullable=False)
     prediction_end_date = Column(
-        String,
+        DateTime(timezone=True),
         nullable=False,
         comment="Date of prediction to be ended, Miner can no longer predict after this date for this txn",
     )

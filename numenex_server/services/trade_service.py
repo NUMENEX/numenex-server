@@ -4,7 +4,8 @@ from .. import schema
 from fastapi import HTTPException
 from siwe import SiweMessage
 import typing as ty
-import eth_hash
+from ..constants import allowed_token_pairs
+from datetime import datetime, timedelta
 
 
 class TradeService:
@@ -15,19 +16,45 @@ class TradeService:
         self,
         sess: Session,
         *,
-        trade: schema.TradeCreate,
         siwe_message: SiweMessage,
         message: ty.Dict[str, any],
+        swap_array: ty.List[schema.SwapResponse],
     ):
-        txn_details = eth_hash
+        swap_txn = schema.SwapResponse(**swap_array[0])
+        if swap_txn.recipient != siwe_message.address:
+            raise HTTPException(
+                status_code=400, detail="Please put your own trade transaction)"
+            )
+        token_pair = swap_txn.token0.symbol + "/" + swap_txn.token1.symbol
+        if token_pair not in allowed_token_pairs:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid token pair, Allowed token pairs are {allowed_token_pairs}",
+            )
+        seven_days_old_date = datetime.now() - timedelta(days=7)
+        if datetime.fromtimestamp(int(swap_txn.timestamp)) < seven_days_old_date:
+            raise HTTPException(
+                status_code=400, detail="Trade is too old, it should be within 7 days"
+            )
+        token_name, token_symbol = (
+            (swap_txn.token0.name, swap_txn.token0.symbol)
+            if float(swap_txn.amount0) > 0
+            else (swap_txn.token1.name, swap_txn.token1.symbol)
+        )
+
+        prediction_end_date = datetime.now() + timedelta(hours=12)
+        price_prediction_date = datetime.now() + timedelta(days=1)
         db_trade: schema.Trade = Trade(
-            **trade.model_dump(),
-            current_price=10,
+            traded_price=swap_txn.amountUSD,
             feeder_address=siwe_message.address,
-            prediction_end_date="2021-10-10",
+            prediction_end_date=prediction_end_date,
             status="feeded",
-            price_prediction_date="2021-10-10",
+            price_prediction_date=price_prediction_date,
+            chain_id=42161,
             hash=message["hash"],
+            trading_pair=token_pair,
+            token_name=token_name,
+            token_symbol=token_symbol,
         )
         sess.add(db_trade)
         sess.commit()

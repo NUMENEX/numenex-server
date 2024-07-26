@@ -4,11 +4,13 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from .database import DatabaseConfig
 from .commune import CommuneConfig
+from .graphql import UniswapGraphqlConfig
 
 
 class Config(BaseModel):
     database_config: DatabaseConfig
     commune_config: CommuneConfig
+    uniswap_graphql_config: UniswapGraphqlConfig
 
 
 class Settings(Config, BaseSettings):
