@@ -23,7 +23,6 @@ class App:
         self.config = config
         dependencies = self.get_dependencies()
         self.app = FastAPI(dependencies=dependencies)
-        self.include_routes()
 
     def get_dependencies(self):
         db = Database(self.config.database_config)
@@ -45,16 +44,23 @@ class App:
 
 settings = get_settings()
 app = App(settings)
-app.app.add_middleware(
-    SessionMiddleware, secret_key="some-random-string", max_age=180000
-)
+app.app.add_middleware(ExceptionHandlerMiddleware)
+origins = ["http://192.168.1.157:5173", "http://localhost:5173"]
 app.app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
-app.app.add_middleware(ExceptionHandlerMiddleware)
+app.app.add_middleware(
+    SessionMiddleware,
+    secret_key="some-random-string",
+    max_age=180000,
+    https_only=False,
+    same_site="none",
+)
+app.include_routes()
 
 
 def serve():

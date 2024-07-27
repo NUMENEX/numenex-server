@@ -47,23 +47,21 @@ async def get_body_data(request: Request):
     return signature, message
 
 
-async def get_miner(
+async def get_numx_participant(
     request: Request,
     _: SecurityScopes,
 ):
-    signature, message = await get_body_data(request)
+    signature = request.headers.get("signature")
+    message = request.headers.get("message")
 
     if (signature or message) is None:
         raise UnauthenticatedException
-    request.state.commune_verifier.verify_participant(
-        # TODO::: change to actual address
-        "address",
-        "miner",
+    participant_type, ss58_address = request.state.commune_verifier.verify_participant(
         signature,
         message,
     )
     # TODO::: change to actual address
-    return "address"
+    return participant_type, ss58_address
 
 
 async def get_validator(
@@ -95,10 +93,10 @@ async def get_siwe_msg(
     try:
         siwe_msg = SiweMessage.from_message(message=message, abnf=False)
         siwe_msg.verify(signature=signature)
+        # if request.session.get("nonce") != siwe_msg.nonce:
+        #     raise siwe.NonceMismatch
         if siwe_msg.chain_id != 42161:
             raise HTTPException(status_code=400, detail="Invalid chain")
-        request.session["address"] = siwe_msg.address
-        request.session["chainId"] = siwe_msg.chain_id
         # TODO:: check nonce here, vite has problem with cookies
         return siwe_msg, message, request.state
     except siwe.NonceMismatch:

@@ -44,11 +44,16 @@ class Trade(Base):
         ENUM("feeded", "predicted", "validated", name="trade_status"), nullable=False
     )
     roi = Column(Float, comment="Return on investment")
-    actual_price = Column(Float, comment="Actual price of the token on prediction date")
+    token_price_on_prediction_day = Column(
+        Float, comment="Actual price of the token on prediction date"
+    )
     price_prediction_date = Column(
         DateTime, nullable=False, comment="Date of prediction to be happened"
     )
     signal = Column(
         ENUM("bullish", "bearish", name="trade_signal", create_type=True),
         comment="Signal for the trade",
+    )
+    token_price_on_trade_day = Column(
+        Float, comment="Price of the token at the time of trading", nullable=False
     )

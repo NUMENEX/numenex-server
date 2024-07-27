@@ -12,7 +12,7 @@ __all__ = [
 
 class Trade(BaseModel):
     feeder_address: str
-    traded_price: float
+    token_price_on_trade_day: float
     predicted_price: Optional[float]
     predictor_address: Optional[str]
     validator_address: Optional[str]
@@ -20,7 +20,7 @@ class Trade(BaseModel):
     price_prediction_date: datetime
     status: str
     roi: Optional[float]
-    actual_price: Optional[float]
+    token_price_on_prediction_day: Optional[float]
     hash: str
     token_name: str
     token_symbol: str

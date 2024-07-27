@@ -3,7 +3,7 @@ from communex.client import CommuneClient
 from communex._common import get_node_url
 from .exceptions import UnauthorizedException
 import re
-import sr25519
+from .key import verify_sign
 
 IP_REGEX = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+")
 
@@ -22,13 +22,14 @@ class VerifyCommuneMinersAndValis:
             get_node_url(use_testnet=self.config.use_testnet)
         )
 
-    def verify_participant(
-        self, address: str, type: str, signature: str, message: str
-    ) -> bool:
+    def verify_participant(self, signature: str, message: str) -> bool:
         """
         Verifies if a given address is a valid miner address
         """
-        verified = sr25519.verify(signature, message, address)
+        print(message, "message")
+        pubkey = message.split(":")[0]
+        ss58_address = message.split(":")[1]
+        verified = verify_sign(pubkey=pubkey, data=message, signature=signature)
         if not verified:
             raise UnauthorizedException("Invalid signature")
         validators = []
@@ -43,12 +44,12 @@ class VerifyCommuneMinersAndValis:
                 validators.append(value)
             else:
                 miners.append(value)
-        if type == "miner":
-            if address not in miners:
-                raise UnauthorizedException("Miner not registered in subnet")
-        elif type == "validator":
-            if address not in validators:
-                raise UnauthorizedException("Validator not registered in subnet")
+        if ss58_address in miners:
+            return "miner", ss58_address
+        elif ss58_address in validators:
+            return "validator", ss58_address
+        else:
+            raise UnauthorizedException("User not registered in subnet")
 
     def extract_address(self, string: str):
         return re.search(IP_REGEX, string)

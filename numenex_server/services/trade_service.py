@@ -9,8 +9,20 @@ from datetime import datetime, timedelta
 
 
 class TradeService:
-    def find_all(self, sess: Session):
-        return sess.query(Trade).all()
+    def find_all(
+        self,
+        sess: Session,
+        *,
+        participant_type: ty.Optional[str] = None,
+        address: ty.Optional[str] = None,
+    ):
+        if participant_type is not None:
+            if participant_type == "miner":
+                return sess.query(Trade).filter(Trade.status == "feeded").all()
+            elif participant_type == "validator":
+                return sess.query(Trade).filter(Trade.status == "predicted").all()
+        else:
+            return sess.query(Trade.feeder_address == address).all()
 
     def create_trade(
         self,
@@ -21,10 +33,11 @@ class TradeService:
         swap_array: ty.List[schema.SwapResponse],
     ):
         swap_txn = schema.SwapResponse(**swap_array[0])
-        if swap_txn.recipient != siwe_message.address:
-            raise HTTPException(
-                status_code=400, detail="Please put your own trade transaction)"
-            )
+        # if swap_txn.recipient != siwe_message.address:
+        #     raise HTTPException(
+        #         status_code=400, detail="Please put your own trade transaction)"
+        #     )
+        print(swap_txn)
         token_pair = swap_txn.token0.symbol + "/" + swap_txn.token1.symbol
         if token_pair not in allowed_token_pairs:
             raise HTTPException(
@@ -36,12 +49,12 @@ class TradeService:
             raise HTTPException(
                 status_code=400, detail="Trade is too old, it should be within 7 days"
             )
-        token_name, token_symbol = (
-            (swap_txn.token0.name, swap_txn.token0.symbol)
+        token_name, token_symbol, token_amount = (
+            (swap_txn.token0.name, swap_txn.token0.symbol, swap_txn.amount0)
             if float(swap_txn.amount0) > 0
-            else (swap_txn.token1.name, swap_txn.token1.symbol)
+            else (swap_txn.token1.name, swap_txn.token1.symbol, swap_txn.amount1)
         )
-
+        token_price_on_trade_day = float(swap_txn.amountUSD) / float(token_amount)
         prediction_end_date = datetime.now() + timedelta(hours=12)
         price_prediction_date = datetime.now() + timedelta(days=1)
         db_trade: schema.Trade = Trade(
@@ -55,6 +68,7 @@ class TradeService:
             trading_pair=token_pair,
             token_name=token_name,
             token_symbol=token_symbol,
+            token_price_on_trade_day=token_price_on_trade_day,
         )
         sess.add(db_trade)
         sess.commit()
