@@ -12,7 +12,6 @@ router = APIRouter(prefix="/nonce", tags=["nonce"])
 @router.get("/")
 async def get_nonce(request: Request):
     nonce = generate_nonce()
-    print(nonce)
     request.session["nonce"] = nonce
     return PlainTextResponse(nonce)
 

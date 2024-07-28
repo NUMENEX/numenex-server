@@ -56,12 +56,12 @@ async def get_numx_participant(
 
     if (signature or message) is None:
         raise UnauthenticatedException
-    participant_type, ss58_address = request.state.commune_verifier.verify_participant(
+    subnet_data = request.state.commune_verifier.verify_participant(
         signature,
         message,
     )
     # TODO::: change to actual address
-    return participant_type, ss58_address
+    return subnet_data
 
 
 async def get_validator(
@@ -72,15 +72,12 @@ async def get_validator(
 
     if (signature or message) is None:
         raise UnauthenticatedException
-    request.state.commune_verifier.verify_participant(
-        # TODO::: change to actual address
-        "address",
-        "validator",
+    subnet_data = request.state.commune_verifier.verify_participant(
         signature,
         message,
     )
     # TODO::: change to actual address
-    return "address"
+    return subnet_data
 
 
 async def get_siwe_msg(

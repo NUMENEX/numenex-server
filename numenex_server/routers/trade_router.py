@@ -23,7 +23,7 @@ async def get_trades(
     session: Session = Depends(get_session),
     participant_data: ty.Tuple = Depends(get_numx_participant),
 ):
-    participant_type, _ = participant_data
+    participant_type, _, _ = participant_data
     data = service.find_all(session, participant_type=participant_type)
     return data
 
@@ -46,9 +46,16 @@ async def update_trade_miner(
     trade: schema.TradeUpdateMiner,
     service: ty.Annotated[TradeService, Depends(TradeService)],
     session: Session = Depends(get_session),
+    participant_data: ty.Tuple = Depends(get_numx_participant),
 ):
+    participant_type, address, module_id = participant_data
     return service.update_trade(
-        session, trade_id=trade_id, trade=trade, address="miner_address", type="miner"
+        session,
+        trade_id=trade_id,
+        trade=trade,
+        address=address,
+        type=participant_type,
+        module_id=module_id,
     )
 
 

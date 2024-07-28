@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+import typing as ty
+import uuid
 
 __all__ = [
     "Trade",
@@ -11,6 +13,7 @@ __all__ = [
 
 
 class Trade(BaseModel):
+    id: uuid.UUID
     feeder_address: str
     token_price_on_trade_day: float
     predicted_price: Optional[float]
@@ -26,6 +29,9 @@ class Trade(BaseModel):
     token_symbol: str
     trading_pair: str
     signal: Optional[str]
+    token_address: str
+    closeness_value: Optional[float]
+    module_id: Optional[str]
 
     class Config:
         from_attributes = True
@@ -33,6 +39,7 @@ class Trade(BaseModel):
 
 class TradeUpdateMiner(BaseModel):
     predicted_price: float
+    signal: ty.Literal["bearish", "bullish"]
 
 
 class TradeUpdateValidator(BaseModel):
@@ -42,6 +49,7 @@ class TradeUpdateValidator(BaseModel):
 
 
 class TokenData(BaseModel):
+    id: str
     name: str
     symbol: str
 

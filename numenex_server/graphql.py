@@ -43,10 +43,12 @@ class UniswapV3Graphql:
                 tick
                 logIndex
                 token0 {
+                    id
                     name
                     symbol
                 }
                 token1 {
+                    id
                     name
                     symbol
                 }

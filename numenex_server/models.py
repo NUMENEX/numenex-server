@@ -41,7 +41,8 @@ class Trade(Base):
     )
     trading_pair = Column(String, nullable=False)
     status = Column(
-        ENUM("feeded", "predicted", "validated", name="trade_status"), nullable=False
+        ENUM("fed", "predicted", "ready", "validated", "expired", name="trade_status"),
+        nullable=False,
     )
     roi = Column(Float, comment="Return on investment")
     token_price_on_prediction_day = Column(
@@ -57,3 +58,19 @@ class Trade(Base):
     token_price_on_trade_day = Column(
         Float, comment="Price of the token at the time of trading", nullable=False
     )
+    token_address = Column(String, nullable=False)
+    closeness_value = Column(
+        Float,
+        comment="Closeness value of the prediction, i.e. actual price - predicted price",
+    )
+    module_id = Column(
+        String,
+        nullable=False,
+        comment="Module ID of the miner/validator in commune subnet",
+    )
+
+
+class Tempo(Base):
+    __tablename__ = "tempo"
+    current_tempo_end_date = Column(DateTime, nullable=False)
+    future_tempo_end_date = Column(DateTime, nullable=False)

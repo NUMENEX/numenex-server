@@ -26,14 +26,13 @@ class VerifyCommuneMinersAndValis:
         """
         Verifies if a given address is a valid miner address
         """
-        print(message, "message")
         pubkey = message.split(":")[0]
         ss58_address = message.split(":")[1]
         verified = verify_sign(pubkey=pubkey, data=message, signature=signature)
         if not verified:
             raise UnauthorizedException("Invalid signature")
-        validators = []
-        miners = []
+        validators = {}
+        miners = {}
         module_addreses = self.commune_client.query_map_key(self.config.netuid)
         module_keys = self.commune_client.query_map_address(self.config.netuid)
         filtered_addr = {
@@ -41,13 +40,15 @@ class VerifyCommuneMinersAndValis:
         }
         for key, value in module_addreses.items():
             if filtered_addr.get(key) is None:
-                validators.append(value)
+                validators[key] = value
             else:
-                miners.append(value)
-        if ss58_address in miners:
-            return "miner", ss58_address
-        elif ss58_address in validators:
-            return "validator", ss58_address
+                miners[key] = value
+        miner_ids = [key for key, val in miners.items() if val == value]
+        if len(miner_ids) > 0:
+            return "miner", ss58_address, miner_ids[0]
+        vali_ids = [key for key, val in validators.items() if val == value]
+        if len(vali_ids) > 0:
+            return "validator", ss58_address, vali_ids[0]
         else:
             raise UnauthorizedException("User not registered in subnet")
 
