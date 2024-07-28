@@ -1,7 +1,13 @@
 import typing as ty
 
-from fastapi import APIRouter, Depends
-from ..dependencies import get_session, get_miner, get_validator, get_siwe_msg
+from fastapi import APIRouter, Depends, Request
+from ..dependencies import (
+    get_session,
+    get_validator,
+    verify_trade,
+    get_numx_participant,
+    get_siwe_msg,
+)
 from .. import schema
 from ..services import TradeService
 from sqlalchemy.orm import Session
@@ -15,22 +21,22 @@ router = APIRouter(prefix="/trades", tags=["trades"])
 async def get_trades(
     service: ty.Annotated[TradeService, Depends(TradeService)],
     session: Session = Depends(get_session),
-    msg: SiweMessage = Depends(get_siwe_msg),
+    participant_data: ty.Tuple = Depends(get_numx_participant),
 ):
-    data = service.find_all(session)
+    participant_type, _, _ = participant_data
+    data = service.find_all(session, participant_type=participant_type)
     return data
 
 
 @router.post("/", response_model=schema.Trade)
 async def create_trade(
-    trade: schema.TradeCreate,
     service: ty.Annotated[TradeService, Depends(TradeService)],
     session: Session = Depends(get_session),
-    messages: ty.Any = Depends(get_siwe_msg),
+    data: ty.Tuple = Depends(verify_trade()),
 ):
-    siwe_message, message = messages
+    siwe_message, message, swaps_array = data
     return service.create_trade(
-        session, trade=trade, siwe_message=siwe_message, message=message
+        session, siwe_message=siwe_message, message=message, swap_array=swaps_array
     )
 
 
@@ -40,10 +46,16 @@ async def update_trade_miner(
     trade: schema.TradeUpdateMiner,
     service: ty.Annotated[TradeService, Depends(TradeService)],
     session: Session = Depends(get_session),
-    miner_address: str = Depends(get_miner),
+    participant_data: ty.Tuple = Depends(get_numx_participant),
 ):
+    participant_type, address, module_id = participant_data
     return service.update_trade(
-        session, trade_id=trade_id, trade=trade, address=miner_address, type="miner"
+        session,
+        trade_id=trade_id,
+        trade=trade,
+        address=address,
+        type=participant_type,
+        module_id=module_id,
     )
 
 
@@ -62,3 +74,14 @@ async def update_trade_validator(
         address=vali_address,
         type="validator",
     )
+
+
+@router.get("/user", response_model=ty.List[schema.Trade])
+async def get_trades_by_user(
+    service: ty.Annotated[TradeService, Depends(TradeService)],
+    session: Session = Depends(get_session),
+    siwe_data: ty.Tuple = Depends(get_siwe_msg),
+):
+    siwe_msg, _, _ = siwe_data
+    data = service.find_all(session, address=siwe_msg.address)
+    return data

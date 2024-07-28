@@ -1,8 +1,15 @@
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .settings import Config, get_settings
-from .dependencies import Database, DatabaseDependency, CommuneDependency
+from .dependencies import (
+    Database,
+    DatabaseDependency,
+    CommuneDependency,
+    UniswapV3Dependency,
+)
 from .routers import trade_router, nonce_router
 from .commune import VerifyCommuneMinersAndValis
+from .graphql import UniswapV3Graphql
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 from .middlewares.exception import ExceptionHandlerMiddleware
@@ -16,14 +23,19 @@ class App:
         self.config = config
         dependencies = self.get_dependencies()
         self.app = FastAPI(dependencies=dependencies)
-        self.include_routes()
 
     def get_dependencies(self):
         db = Database(self.config.database_config)
         database_dependency = DatabaseDependency(db)
         commune_verifier = VerifyCommuneMinersAndValis(self.config.commune_config)
         commune_dependency = CommuneDependency(commune_verifier)
-        return [Depends(database_dependency), Depends(commune_dependency)]
+        uniswap_v3_graphql = UniswapV3Graphql(self.config.uniswap_graphql_config)
+        uniswap_v3_dependency = UniswapV3Dependency(uniswap_v3_graphql)
+        return [
+            Depends(database_dependency),
+            Depends(commune_dependency),
+            Depends(uniswap_v3_dependency),
+        ]
 
     def include_routes(self):
         self.app.include_router(trade_router.router)
@@ -33,9 +45,22 @@ class App:
 settings = get_settings()
 app = App(settings)
 app.app.add_middleware(ExceptionHandlerMiddleware)
+origins = ["http://192.168.1.157:5173", "http://localhost:5173"]
 app.app.add_middleware(
-    SessionMiddleware, secret_key="some-random-string", max_age=180000
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
 )
+app.app.add_middleware(
+    SessionMiddleware,
+    secret_key="some-random-string",
+    max_age=180000,
+    https_only=False,
+    same_site="none",
+)
+app.include_routes()
 
 
 def serve():

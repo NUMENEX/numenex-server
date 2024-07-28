@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, DateTime, Float, ForeignKey, UUID, String
+from sqlalchemy import Column, DateTime, Float, Integer, UUID, String
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ENUM
 import uuid
@@ -29,22 +29,25 @@ class Trade(Base):
     token_name = Column(String, nullable=False)
     token_symbol = Column(String, nullable=False)
     hash = Column(String, nullable=False, unique=True)
-    current_price = Column(Float)
+    traded_price = Column(Float)
     predicted_price = Column(Float, comment="Price predicted by the miner")
     predictor_address = Column(String)
     validator_address = Column(String)
-    chain = Column(String, nullable=False)
+    chain_id = Column(Integer, nullable=False)
     prediction_end_date = Column(
-        String,
+        DateTime(timezone=True),
         nullable=False,
         comment="Date of prediction to be ended, Miner can no longer predict after this date for this txn",
     )
     trading_pair = Column(String, nullable=False)
     status = Column(
-        ENUM("feeded", "predicted", "validated", name="trade_status"), nullable=False
+        ENUM("fed", "predicted", "ready", "validated", "expired", name="trade_status"),
+        nullable=False,
     )
     roi = Column(Float, comment="Return on investment")
-    actual_price = Column(Float, comment="Actual price of the token on prediction date")
+    token_price_on_prediction_day = Column(
+        Float, comment="Actual price of the token on prediction date"
+    )
     price_prediction_date = Column(
         DateTime, nullable=False, comment="Date of prediction to be happened"
     )
@@ -52,3 +55,22 @@ class Trade(Base):
         ENUM("bullish", "bearish", name="trade_signal", create_type=True),
         comment="Signal for the trade",
     )
+    token_price_on_trade_day = Column(
+        Float, comment="Price of the token at the time of trading", nullable=False
+    )
+    token_address = Column(String, nullable=False)
+    closeness_value = Column(
+        Float,
+        comment="Closeness value of the prediction, i.e. actual price - predicted price",
+    )
+    module_id = Column(
+        String,
+        nullable=False,
+        comment="Module ID of the miner/validator in commune subnet",
+    )
+
+
+class Tempo(Base):
+    __tablename__ = "tempo"
+    current_tempo_end_date = Column(DateTime, nullable=False)
+    future_tempo_end_date = Column(DateTime, nullable=False)
