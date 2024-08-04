@@ -43,10 +43,10 @@ class VerifyCommuneMinersAndValis:
                 validators[key] = value
             else:
                 miners[key] = value
-        miner_ids = [key for key, val in miners.items() if val == value]
+        miner_ids = [key for key, val in miners.items() if val == ss58_address]
         if len(miner_ids) > 0:
             return "miner", ss58_address, miner_ids[0]
-        vali_ids = [key for key, val in validators.items() if val == value]
+        vali_ids = [key for key, val in validators.items() if val == ss58_address]
         if len(vali_ids) > 0:
             return "validator", ss58_address, vali_ids[0]
         else:

@@ -6,6 +6,7 @@ from .base_schema import DatabaseMixin
 class SubnetUserBase(BaseModel):
     user_address: str
     user_type: ty.Literal["validator", "miner"]
+    module_id: int
 
 
 class SubnetUserCreate(SubnetUserBase): ...

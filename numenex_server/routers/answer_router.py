@@ -1,6 +1,6 @@
 import typing as ty
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, status
 from ..dependencies import (
     get_session,
     get_numx_participant,
@@ -28,4 +28,29 @@ async def create_answers(
     session: Session = Depends(get_session),
     answerer: schema.SubnetUser = Depends(get_numx_participant),
 ):
+    if answerer.user_type != "miner":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only miners are allowed to answer questions",
+        )
     return service.create_answers(session, answers=answers, answerer_id=answerer.id)
+
+
+@router.patch("/")
+async def update_answer_validations(
+    service: ty.Annotated[AnswerService, Depends(AnswerService)],
+    validations: ty.List[schema.AnswerUpdate],
+    session: Session = Depends(get_session),
+    validator: schema.SubnetUser = Depends(get_numx_participant),
+):
+    if validator.user_type != "validator":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only validators are allowed to update answer validations",
+        )
+    return service.update_answer_validations(
+        session,
+        validations=validations,
+        ss58_address=validator.user_address,
+        module_id=validator.module_id,
+    )

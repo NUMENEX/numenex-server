@@ -2,6 +2,7 @@ from .. import schema
 import typing as ty
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select, update, and_
 from ..models import Answer, Question
 import uuid
 from datetime import datetime
@@ -18,7 +19,7 @@ class AnswerService:
     ):
         ids = [q.question_id for q in answers]
         now = datetime.now()
-        answered_question_ids = (
+        answered_question_ids = select(
             sess.query(Answer.question_id)
             .filter(Answer.answerer_id == answerer_id)
             .subquery()
@@ -57,4 +58,33 @@ class AnswerService:
         self,
         sess: Session,
     ):
-        return sess.query(Answer).all()
+        now = datetime.now()
+        return (
+            sess.query(Answer)
+            .join(Question, Answer.question_id == Question.id)
+            .filter(
+                and_(
+                    Question.start_date <= now,
+                    Question.end_date >= now,
+                )
+            )
+            .all()
+        )
+
+    def update_answer_validations(
+        self,
+        sess: Session,
+        *,
+        validations: ty.List[schema.AnswerUpdate],
+        module_id: int,
+        ss58_address: str,
+    ):
+        validations_data = []
+        for validation in validations:
+            validation_data = validation.model_dump()
+            validation_data["module_id"] = module_id
+            validation_data["ss58_address"] = ss58_address
+            validations_data.append(validation_data)
+
+        sess.execute(update(Answer), validations_data)
+        sess.commit()

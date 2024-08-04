@@ -1,5 +1,5 @@
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, DateTime, ForeignKey, JSON, UUID, String, ARRAY
+from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import Column, DateTime, ForeignKey, JSON, UUID, String, ARRAY, Integer
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ENUM
 import uuid
@@ -45,9 +45,12 @@ class Answer(Base):
 
     question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id"), nullable=False)
     answer = Column(String, nullable=False)
-    answerer_id = Column(UUID(as_uuid=True), nullable=False)
-    validator_ids = Column(ARRAY(String), nullable=True)
+    answerer_id = Column(
+        UUID(as_uuid=True), ForeignKey("subnet_users.id"), nullable=False
+    )
+    validations = Column(JSON, nullable=True)
     supporting_resources = Column(JSON, nullable=True)
+    miners = relationship("SubnetUser", backref="answers")
 
 
 class SubnetUser(Base):
@@ -55,3 +58,5 @@ class SubnetUser(Base):
 
     user_address = Column(String, nullable=False, index=True, unique=True)
     user_type = Column(ENUM("validator", "miner", name="user_types"), nullable=False)
+    module_id = Column(Integer, nullable=False, unique=True)
+    answers = relationship("Answer", backref="miners")

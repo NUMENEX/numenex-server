@@ -61,7 +61,7 @@ async def get_numx_participant(
 
     if (signature or message) is None:
         raise UnauthenticatedException
-    participant_type, ss58_address, _ = (
+    participant_type, ss58_address, module_id = (
         request.state.commune_verifier.verify_participant(
             signature,
             message,
@@ -70,7 +70,9 @@ async def get_numx_participant(
 
     return user_service.create_user(
         session,
-        user=SubnetUserCreate(user_address=ss58_address, user_type=participant_type),
+        user=SubnetUserCreate(
+            user_address=ss58_address, user_type=participant_type, module_id=module_id
+        ),
     )
 
 
