@@ -8,6 +8,9 @@ from .exceptions import UnauthenticatedException
 from siwe import SiweMessage, siwe
 import typing as ty
 import json
+from .services import SubnetUserService
+from .schema import SubnetUserCreate
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -50,18 +53,25 @@ async def get_body_data(request: Request):
 async def get_numx_participant(
     request: Request,
     _: SecurityScopes,
+    user_service: ty.Annotated[SubnetUserService, Depends(SubnetUserService)],
+    session: Session = Depends(get_session),
 ):
     signature = request.headers.get("signature")
     message = request.headers.get("message")
 
     if (signature or message) is None:
         raise UnauthenticatedException
-    subnet_data = request.state.commune_verifier.verify_participant(
-        signature,
-        message,
+    participant_type, ss58_address, _ = (
+        request.state.commune_verifier.verify_participant(
+            signature,
+            message,
+        )
     )
-    # TODO::: change to actual address
-    return subnet_data
+
+    return user_service.create_user(
+        session,
+        user=SubnetUserCreate(user_address=ss58_address, user_type=participant_type),
+    )
 
 
 async def get_validator(

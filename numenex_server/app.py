@@ -7,11 +7,10 @@ from .dependencies import (
     CommuneDependency,
     UniswapV3Dependency,
 )
-from .routers import trade_router, nonce_router
+from .routers import question_router, answer_router
 from .commune import VerifyCommuneMinersAndValis
 from .graphql import UniswapV3Graphql
 import uvicorn
-from starlette.middleware.sessions import SessionMiddleware
 from .middlewares.exception import ExceptionHandlerMiddleware
 
 
@@ -38,8 +37,8 @@ class App:
         ]
 
     def include_routes(self):
-        self.app.include_router(trade_router.router)
-        self.app.include_router(nonce_router.router)
+        self.app.include_router(question_router.router)
+        self.app.include_router(answer_router.router)
 
 
 settings = get_settings()
@@ -52,13 +51,6 @@ app.app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
-)
-app.app.add_middleware(
-    SessionMiddleware,
-    secret_key="some-random-string",
-    max_age=180000,
-    https_only=False,
-    same_site="none",
 )
 app.include_routes()
 
