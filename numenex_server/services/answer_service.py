@@ -81,10 +81,53 @@ class AnswerService:
     ):
         validations_data = []
         for validation in validations:
-            validation_data = validation.model_dump()
-            validation_data["module_id"] = module_id
-            validation_data["ss58_address"] = ss58_address
+            validation_data = dict(validation)
+            validation_data["validations"] = {}
+            validation_data["validations"]["module_id"] = module_id
+            validation_data["validations"]["ss58_address"] = ss58_address
+            validation_data["validations"]["score"] = validation_data["score"]
+            del validation_data["score"]
             validations_data.append(validation_data)
 
-        sess.execute(update(Answer), validations_data)
+        answer_ids = [item["id"] for item in validations_data]
+        answers = (
+            sess.query(Answer.id, Answer.validations)
+            .filter(Answer.id.in_(answer_ids))
+            .all()
+        )
+        existing_data = {
+            id: (validations if validations is not None else [])
+            for id, validations in answers
+        }
+        filtered_data = self.filter_data(existing_data, validations_data)
+
+        sess.execute(update(Answer), filtered_data)
         sess.commit()
+        return filtered_data
+
+    def filter_data(self, existing_data, new_data):
+        filtered_data = []
+
+        for entry in new_data:
+            id = entry["id"]
+            validator = entry["validations"]["ss58_address"]
+            module_id = entry["validations"]["module_id"]
+            score = entry["validations"]["score"]
+
+            if id in existing_data:
+                existing_validations = existing_data[id]
+
+                # Check if the validation entry already exists
+                exists = (
+                    existing_validations["module_id"] == module_id
+                    and existing_validations["ss58_address"] == validator
+                )
+
+                if not exists:
+                    # Add the new validation entry
+                    filtered_data.append(entry)
+            else:
+                # If the id is not found in existing_data, add the new entry
+                filtered_data.append(entry)
+
+        return filtered_data

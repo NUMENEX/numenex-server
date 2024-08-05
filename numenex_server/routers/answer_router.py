@@ -36,7 +36,7 @@ async def create_answers(
     return service.create_answers(session, answers=answers, answerer_id=answerer.id)
 
 
-@router.patch("/")
+@router.patch("/", response_model=ty.Dict[str, ty.List[ty.Dict[str, ty.Any]]])
 async def update_answer_validations(
     service: ty.Annotated[AnswerService, Depends(AnswerService)],
     validations: ty.List[schema.AnswerUpdate],
@@ -48,9 +48,10 @@ async def update_answer_validations(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only validators are allowed to update answer validations",
         )
-    return service.update_answer_validations(
+    updated_answers = service.update_answer_validations(
         session,
         validations=validations,
         ss58_address=validator.user_address,
         module_id=validator.module_id,
     )
+    return {"updated_answers": updated_answers}

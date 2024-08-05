@@ -1,8 +1,8 @@
 """init_db
 
-Revision ID: 29daf7aaa257
+Revision ID: e9e80fb2dbc6
 Revises: 
-Create Date: 2024-08-04 13:27:02.972197
+Create Date: 2024-08-06 01:10:39.066770
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '29daf7aaa257'
+revision: str = 'e9e80fb2dbc6'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,10 +37,12 @@ def upgrade() -> None:
     op.create_table('subnet_users',
     sa.Column('user_address', sa.String(), nullable=False),
     sa.Column('user_type', postgresql.ENUM('validator', 'miner', name='user_types'), nullable=False),
+    sa.Column('module_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('module_id')
     )
     op.create_index(op.f('ix_subnet_users_created_at'), 'subnet_users', ['created_at'], unique=False)
     op.create_index(op.f('ix_subnet_users_id'), 'subnet_users', ['id'], unique=False)
@@ -50,11 +52,12 @@ def upgrade() -> None:
     sa.Column('question_id', sa.UUID(), nullable=False),
     sa.Column('answer', sa.String(), nullable=False),
     sa.Column('answerer_id', sa.UUID(), nullable=False),
-    sa.Column('validator_ids', sa.ARRAY(sa.String()), nullable=True),
+    sa.Column('validations', sa.JSON(), nullable=True),
     sa.Column('supporting_resources', sa.JSON(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['answerer_id'], ['subnet_users.id'], ),
     sa.ForeignKeyConstraint(['question_id'], ['questions.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

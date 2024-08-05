@@ -22,6 +22,10 @@ class QuestionService:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="End date must be after start date",
                 )
+            print(
+                datetime.now().astimezone(question.start_date.tzinfo),
+                question.start_date,
+            )
             if question.end_date < datetime.now().astimezone(question.end_date.tzinfo):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,

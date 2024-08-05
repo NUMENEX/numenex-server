@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, relationship
-from sqlalchemy import Column, DateTime, ForeignKey, JSON, UUID, String, ARRAY, Integer
+from sqlalchemy import Column, DateTime, ForeignKey, UUID, String, ARRAY, Integer, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ENUM
 import uuid
@@ -50,7 +50,7 @@ class Answer(Base):
     )
     validations = Column(JSON, nullable=True)
     supporting_resources = Column(JSON, nullable=True)
-    miners = relationship("SubnetUser", backref="answers")
+    miner = relationship("SubnetUser", back_populates="answers")
 
 
 class SubnetUser(Base):
@@ -59,4 +59,4 @@ class SubnetUser(Base):
     user_address = Column(String, nullable=False, index=True, unique=True)
     user_type = Column(ENUM("validator", "miner", name="user_types"), nullable=False)
     module_id = Column(Integer, nullable=False, unique=True)
-    answers = relationship("Answer", backref="miners")
+    answers = relationship("Answer", back_populates="miner")
