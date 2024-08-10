@@ -38,6 +38,7 @@ class Question(Base):
         nullable=False,
     )
     end_date = Column(DateTime(timezone=True), nullable=False)
+    answers = relationship("Answer", back_populates="question")
 
 
 class Answer(Base):
@@ -51,6 +52,7 @@ class Answer(Base):
     validations = Column(JSON, nullable=True)
     supporting_resources = Column(JSON, nullable=True)
     miner = relationship("SubnetUser", back_populates="answers")
+    question = relationship("Question", back_populates="answers", uselist=False)
 
 
 class SubnetUser(Base):

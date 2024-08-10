@@ -96,7 +96,7 @@ class AnswerService:
             .all()
         )
         existing_data = {
-            id: (validations if validations is not None else [])
+            id: (validations if validations is not None else {})
             for id, validations in answers
         }
         filtered_data = self.filter_data(existing_data, validations_data)
@@ -118,14 +118,27 @@ class AnswerService:
                 existing_validations = existing_data[id]
 
                 # Check if the validation entry already exists
-                exists = (
-                    existing_validations["module_id"] == module_id
-                    and existing_validations["ss58_address"] == validator
-                )
+                if len(existing_validations) == 0:
+                    exists = False
+                else:
+                    exists = (
+                        existing_validations["module_id"] == module_id
+                        and existing_validations["ss58_address"] == validator
+                    )
 
                 if not exists:
                     # Add the new validation entry
                     filtered_data.append(entry)
+                else:
+                    # Update the score of the existing validation entry
+                    existing_validations["score"] = score
+                    filtered_data.append(
+                        {
+                            "id": id,
+                            "validations": existing_validations,
+                        }
+                    )
+
             else:
                 # If the id is not found in existing_data, add the new entry
                 filtered_data.append(entry)

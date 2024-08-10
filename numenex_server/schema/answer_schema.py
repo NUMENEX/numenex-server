@@ -3,6 +3,7 @@ import typing as ty
 import uuid
 from .base_schema import DatabaseMixin
 from .subnet_user_schema import SubnetUser
+from .question_schema import Question
 
 __all__ = ["AnswerBase", "AnswerCreate", "Answer", "AnswerUpdate"]
 
@@ -18,6 +19,7 @@ class AnswerCreate(AnswerBase): ...
 
 class Answer(AnswerBase, DatabaseMixin):
     miner: SubnetUser
+    question: Question
 
     class Config:
         from_attributes = True
