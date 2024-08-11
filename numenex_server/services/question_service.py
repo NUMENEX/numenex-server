@@ -34,12 +34,11 @@ class QuestionService:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Start date must be in the future",
                 )
-            if question.question_type == "multiple_choice":
-                if not question.answer_choices or len(question.answer_choices) < 2:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Multiple choice questions must have at least 2 answer choices",
-                    )
+            if not question.answer_choices or len(question.answer_choices) < 2:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Multiple choice questions must have at least 2 answer choices",
+                )
             db_question = Question(**question.model_dump())
             sess.add(db_question)
             db_questions.append(db_question)
