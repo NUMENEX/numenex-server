@@ -5,12 +5,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from .database import DatabaseConfig
 from .commune import CommuneConfig
 from .graphql import UniswapGraphqlConfig
+from .auth import AuthConfig
 
 
 class Config(BaseModel):
     database_config: DatabaseConfig
     commune_config: CommuneConfig
     uniswap_graphql_config: UniswapGraphqlConfig
+    auth_config: AuthConfig
 
 
 class Settings(Config, BaseSettings):

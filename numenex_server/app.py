@@ -6,10 +6,12 @@ from .dependencies import (
     DatabaseDependency,
     CommuneDependency,
     UniswapV3Dependency,
+    AuthDependency,
 )
 from .routers import question_router, answer_router
 from .commune import VerifyCommuneMinersAndValis
 from .graphql import UniswapV3Graphql
+from .auth import Auth
 import uvicorn
 from .middlewares.exception import ExceptionHandlerMiddleware
 
@@ -30,10 +32,13 @@ class App:
         commune_dependency = CommuneDependency(commune_verifier)
         uniswap_v3_graphql = UniswapV3Graphql(self.config.uniswap_graphql_config)
         uniswap_v3_dependency = UniswapV3Dependency(uniswap_v3_graphql)
+        auth = Auth(self.config.auth_config)
+        auth_dependency = AuthDependency(auth)
         return [
             Depends(database_dependency),
             Depends(commune_dependency),
             Depends(uniswap_v3_dependency),
+            Depends(auth_dependency),
         ]
 
     def include_routes(self):

@@ -1,12 +1,9 @@
 import typing as ty
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from ..dependencies import (
     get_session,
-    get_validator,
-    verify_trade,
-    get_numx_participant,
-    get_siwe_msg,
+    verify_admin,
 )
 from .. import schema
 from ..services import QuestionService
@@ -29,5 +26,6 @@ async def create_questions(
     service: ty.Annotated[QuestionService, Depends(QuestionService)],
     questions: ty.List[schema.QuestionCreate],
     session: Session = Depends(get_session),
+    _: ty.Any = Depends(verify_admin),
 ):
     return service.create_questions(session, questions=questions)

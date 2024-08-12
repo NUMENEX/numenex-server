@@ -1,9 +1,11 @@
 import logging
-from fastapi.security import SecurityScopes
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import SecurityScopes, HTTPBearer
 from .database import Database
 from fastapi import Request, HTTPException, Depends
 from .commune import VerifyCommuneMinersAndValis
 from .graphql import UniswapV3Graphql
+from .auth import Auth
 from .exceptions import UnauthenticatedException
 from siwe import SiweMessage, siwe
 import typing as ty
@@ -41,6 +43,25 @@ class UniswapV3Dependency:
 
     def __call__(self, request: Request) -> None:
         request.state.uniswap_v3_graphql = self.uniswap_v3_graphql
+
+
+class AuthDependency:
+    def __init__(self, auth: Auth) -> None:
+        self.auth = auth
+
+    def __call__(self, request: Request) -> None:
+        request.state.auth = self.auth
+
+
+def verify_admin(
+    request: Request,
+    _: SecurityScopes,
+    token: ty.Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer()),
+):
+    if token.credentials is None:
+        raise UnauthenticatedException
+    admin = request.state.auth.authenticate(token.credentials)
+    return admin
 
 
 async def get_body_data(request: Request):
