@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -30,6 +28,6 @@ class Database:
         with self.sessionmaker() as sess:
             yield sess
 
-    @contextmanager
-    def get_session_ctx(self):
-        yield from self.get_session()
+    # @contextmanager
+    # def get_session_ctx(self):
+    #     yield from self.get_session()
