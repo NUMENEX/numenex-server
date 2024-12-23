@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..models import SubnetUser
 
 
+# subnet user service
 class SubnetUserService:
     def create_user(
         self,
