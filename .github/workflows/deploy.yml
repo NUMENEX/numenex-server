@@ -23,4 +23,6 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: ${{ secrets.PORT }}
         command_timeout: 30m
-        script: /data/cicd/fastAPI.sh
+        script:  |
+            export PATH=${{ secrets.PATH }}:$PATH
+            bash -c "/data/cicd/fastAPI.sh"
