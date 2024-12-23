@@ -12,6 +12,14 @@ class SubnetUserService:
     ):
         db_user = self.get_user_using_address(sess, user_address=user.user_address)
         if db_user:
+            if (
+                db_user.user_type != user.user_type
+                or db_user.module_id != user.module_id
+            ):
+                db_user.user_type = user.user_type
+                db_user.module_id = user.module_id
+                sess.commit()
+                sess.refresh(db_user)
             return db_user
         else:
             new_user = SubnetUser(**user.model_dump())
